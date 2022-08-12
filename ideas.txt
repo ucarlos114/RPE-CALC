@@ -2,11 +2,11 @@ ideas on how to gather data important to determining RPE:
 
 velocity of lift
 duration of lift
-number of reps (to an extent?)
+number of reps (does this matter to an extent?)
 
 ----------------------------------------------------------
 
-DETERMINING VELOCITY OF LIFT:
+POSSIBLE METHODS OF DETERMINING VELOCITY OF LIFT:
 
 STARTING POINTS:
 SQUAT: from the turnaround point out of the hole
