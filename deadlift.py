@@ -30,8 +30,7 @@ def deadlift_detect(file):
         'M', 'J', 'P', 'G'), fps, (scale_width, scale_height))
 
     # get funny input
-    #weight = input("How many solid ass pounds are you lifting?: ")
-
+    
     # Inititate holistic model
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
 
@@ -48,6 +47,7 @@ def deadlift_detect(file):
 
             # Make detections
             results = pose.process(image)
+            
             # Recolor image back to BGR for rendering
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
