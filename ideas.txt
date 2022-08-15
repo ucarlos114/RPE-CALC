@@ -4,7 +4,20 @@ velocity of lift
 duration of lift
 number of reps (does this matter to an extent?)
 
-----------------------------------------------------------
+**********************************************************
+
+TODO NEXT:
+find a method of determining when the lift begins, when it ends
+
+Boolean value motion set when rom starts increasing?
+how to tell when it ends at the top
+
+once we can determine the actual duration of the lift,
+we can calculate the average angular rate of change for both
+the hips and the knees, as well as the rate of change
+of the bar position.
+
+**********************************************************
 
 POSSIBLE METHODS OF DETERMINING VELOCITY OF LIFT:
 
@@ -17,31 +30,6 @@ ENDING POINTS:
 SQUAT: motionless at the top
 BENCH: motionless at the top
 DEADLIFT: motionless at the bottom
-
-time portion:
-need to determine the frame in the video at
-which the starting moments above begin. keep a counter of how
-many frames until the ending point. using the frame rate of the
-camera we can determine the length of the lift. we can test this
-to make sure it is reliable
-
-angles portion:
-we could use the current rate of change of the angles (for example across 10
-consecutive frames) to determine whether a lift has begun/ended or not. we
-could also use an absolute point to determine whether lift has begun or ended,
-i.e. once hips angle is greater than 85 degrees for over 5 frames on deadlift
-we can tell the lift has started.
-
-velocity portion:
-idk i need to ask couch if the angular velocity matters or if its just the speed
-if we are doing human body detection it will come down to tracking certain points in
-relation to each other
-
-*************************************************************************************************
-OH SHOOT I JUST HAD GOOD IDEA WE COULD TRACK THE BODY POINT CLOSEST TO THE BAR LIKE THE HANDS FOR
-DEADLIFT AND BENCH OR THE SHOULDERS FOR SQUAT this might have made things a lot easier lol but this
-really depends on if the video is shaky or not idk i will figure this out tomorrow
-*************************************************************************************************
 
 ----------------------------------------------------------
 

@@ -1,7 +1,7 @@
 import numpy as np
+
 ##### CALCULATE ANGLE BETWEEN JOINTS #####
-
-
+    
 def calculate_angle(a, b, c):
     a = np.array(a)
     b = np.array(b)
