@@ -8,6 +8,8 @@ number of reps (does this matter to an extent?)
 
 TODO NEXT:
 find a method of determining when the lift begins, when it ends
+even better, record the duration of each rep, storing them separately
+to be able to compare the change in rep duration throughout the set
 
 Boolean value motion set when rom starts increasing?
 how to tell when it ends at the top

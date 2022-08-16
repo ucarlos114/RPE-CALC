@@ -1,8 +1,12 @@
 ##### INSTALL DEPENDENCIES #####
+from audioop import add
+from turtle import update
 import mediapipe as mp
 import cv2
 import os
 from calculate_angle import *
+from update_db import *
+#from convert import *
 
 ##### SOLUTIONS (TRAINED ML ALGORITHMS?) #####
 mp_drawing = mp.solutions.drawing_utils
@@ -10,28 +14,29 @@ mp_pose = mp.solutions.pose
 
 ##### DETECT FROM VIDEOS #####
 
+def get_fps(file):
+    # setup video
+    cap = cv2.VideoCapture(os.path.join(file))
 
-def test_deadlift_detect(file, output):
+    # Properties
+    fps = round(cap.get(cv2.CAP_PROP_FPS), 3)
+    print(str(fps))
+
+# -------------------------------------------------------------------
+
+def test_deadlift_detect(file, rpe):
 
     # setup video
     cap = cv2.VideoCapture(os.path.join(file))
 
     # Properties
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     fps = round(cap.get(cv2.CAP_PROP_FPS), 3)
-
-    # resclaing video size
-    '''scale_percent = 40
-    scale_width = int(width * (scale_percent / 100))
-    scale_height = int(height * (scale_percent / 100))'''   # experimenting with resizing all vids to same resolution
     scale_width = 576
     scale_height = 768
-    print('dimensions: ' + str(scale_width) + 'x' + str(scale_height))
 
-    # Video Writer
-    pathname = "output_videos/" + output + ".avi"
-    video_writer = cv2.VideoWriter(os.path.join(pathname), cv2.VideoWriter_fourcc(
+    # Create Video Writer
+    output = file.split('/', 1)[1].split('.', 1)[0]
+    video_writer = cv2.VideoWriter(os.path.join("output_videos/" + output + ".avi"), cv2.VideoWriter_fourcc(
         'M', 'J', 'P', 'G'), fps, (scale_width, scale_height))
 
     # set variables
@@ -45,7 +50,7 @@ def test_deadlift_detect(file, output):
     min_rom = scale_height  # min distance between hands and ankles
     prev_rom = 0            # for keeping track of upward motion
     complete = False        # whether the bar is currently at the top (rep complete)
-    upward = False          # whether the bar is currently in upward motion
+    time = 0
 
     # Inititate holistic model
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
@@ -95,10 +100,10 @@ def test_deadlift_detect(file, output):
                 right_ankle = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x,
                                landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
 
-                left_hand = [round(landmarks[mp_pose.PoseLandmark.LEFT_THUMB.value].x, 2),
-                             round(landmarks[mp_pose.PoseLandmark.LEFT_THUMB.value].y, 2)]
-                right_hand = [round(landmarks[mp_pose.PoseLandmark.RIGHT_THUMB.value].x, 2),
-                              round(landmarks[mp_pose.PoseLandmark.RIGHT_THUMB.value].y, 2)]
+                left_hand = [landmarks[mp_pose.PoseLandmark.LEFT_THUMB.value].x,
+                             landmarks[mp_pose.PoseLandmark.LEFT_THUMB.value].y]
+                right_hand = [landmarks[mp_pose.PoseLandmark.RIGHT_THUMB.value].x,
+                              landmarks[mp_pose.PoseLandmark.RIGHT_THUMB.value].y]
 
                 # data to be collected
                 ha = round((calculate_angle(left_shoulder, left_hip, left_knee) + 
@@ -107,7 +112,7 @@ def test_deadlift_detect(file, output):
                 ka = round((calculate_angle(left_hip, left_knee, left_ankle) +
                     calculate_angle(right_hip, right_knee, right_ankle)) / 2, 2)
 
-                rom = round(( (left_ankle[1] - left_hand[1]) +  (right_ankle[1] - right_hand[1]) ) / 2, 2)
+                rom = ( (left_ankle[1] - left_hand[1]) +  (right_ankle[1] - right_hand[1]) ) / 2
 
                 # update max/min values
                 if ha > max_ha:
@@ -125,24 +130,22 @@ def test_deadlift_detect(file, output):
                 elif rom < min_rom:
                     min_rom = rom
                 
-                # update rep counter
+                # check if rep has been completed
                 if (ka > 170 and ha > 165 and not complete):
                     reps += 1
                     complete = True
+                    upward = False
                 elif (ha < 100):
                     complete = False
 
-                # update upward flag
-                if rom > prev_rom:
-                    upward = True
+                # check if rep is in progress
+                if (rom > prev_rom and not complete):
+                    cv2.putText(image, 'LIFTING', [20, 25], cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv2.LINE_AA)
                     numframes += 1      # frame counter
                 prev_rom = rom
                 
-
-                # Visualize
-                time = round(numframes / fps, 3)
-                timer = "Time Elapsed: " + '{:.2f}'.format(time)
-                cv2.putText(image, timer, [20, 25], cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv2.LINE_AA)
+                #timer = "Time Elapsed: " + '{:.2f}'.format(time)
+                
                 counter = "Reps completed: " + str(reps)
                 cv2.putText(image, counter, [20, 55], cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2, cv2.LINE_AA)
 
@@ -155,9 +158,9 @@ def test_deadlift_detect(file, output):
                 cv2.putText(image, str(ka), tuple(np.multiply(right_knee, [int(0.8 * scale_width), scale_height]).astype(int)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
-                cv2.putText(image, str(rom), tuple(np.multiply(left_hand, [int(1.1 * scale_width), scale_height]).astype(int)),
+                cv2.putText(image, str(round(rom, 2)), tuple(np.multiply(left_hand, [int(1.1 * scale_width), scale_height]).astype(int)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                cv2.putText(image, str(rom), tuple(np.multiply(right_hand, [int(0.8 * scale_width), scale_height]).astype(int)),
+                cv2.putText(image, str(round(rom, 2)), tuple(np.multiply(right_hand, [int(0.8 * scale_width), scale_height]).astype(int)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
             except:
@@ -170,7 +173,7 @@ def test_deadlift_detect(file, output):
                 mp_drawing.DrawingSpec(color=(200, 56, 83), thickness=2, circle_radius=2))'''
 
             # display each processed frame
-            cv2.imshow('Processed Feed', image)
+            cv2.imshow('RPE Calculator', image)
 
             # Write out frame
             video_writer.write(image)
@@ -178,14 +181,25 @@ def test_deadlift_detect(file, output):
             if cv2.waitKey(10) & 0xFF == ord('q'):      # press q to quit
                 break
 
-    # print results (later write to a csv)
-    print('Max hip angle was: ' + str(max_ha))
-    print('Min hip angle was: ' + str(min_ha))
-    print('Max knee angle was: ' + str(max_ka))
-    print('Min knee angle was: ' + str(min_ka))
-    print('Max rom was: ' + str(max_rom))
-    print('Min rom was: ' + str(min_rom))
-    cap.release()       # end live feed capture
-    cv2.destroyAllWindows()     # close window
-    # Release video writer
+    # convert output vid to mp4
+    #video_to_mp4('output_videos/' + output + '.avi', output='output_videos/' + output + '.mp4')
+    
+    # final calculations
+    time = numframes / fps
+    hip_av = round((max_ha - min_ha) / time, 1)   # average hip angular velocity
+    knee_av = round((max_ka - min_ka) / time, 1)  # average knee angular velocity
+    bar_speed = round((max_rom - min_rom) / time, 1) # average upward velocity of the barbell (NEED TO FIND BETTER METHOD OF DETERMINING)
+
+    cap.release()
+    cv2.destroyAllWindows()
     video_writer.release()
+
+    # print results (later write to a csv)
+    print('Time elapsed was: ' + str(round(time, 2)))
+    print('Average hip angular velocity was: ' + str(hip_av) + ' degrees per second')
+    print('Average knee angular velocity was: ' + str(knee_av) + ' degrees per second')
+    print('Average bar speed was: ' + str(bar_speed))
+    print('RPE ' + str(rpe))
+    add_to_data(output, time, reps, hip_av, knee_av, bar_speed, rpe)
+
+    return(output, time, reps, hip_av, knee_av, bar_speed, rpe)

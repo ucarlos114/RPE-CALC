@@ -1,6 +1,5 @@
 import mediapipe as mp
 import cv2
-import os
 
 def video_to_mp4(input, output, fps: int = 0, frame_size: tuple = (), fourcc: str = "MPV4"):
     vidcap = cv2.VideoCapture(input)
@@ -26,4 +25,4 @@ def video_to_mp4(input, output, fps: int = 0, frame_size: tuple = (), fourcc: st
     vidcap.release()
 
 # video_to_mp4('input_videos/jacob_sumo.MOV', output='output_videos/jacob_sumo.mp4')
-video_to_mp4('input_videos/435_pause.MOV', output='input_videos/435_pause.mp4')
+video_to_mp4('input_videos/515_carlos.MOV', output='input_videos/515_carlos.mp4')
